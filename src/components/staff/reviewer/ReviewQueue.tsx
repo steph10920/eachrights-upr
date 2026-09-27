@@ -1,106 +1,242 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useSubmissions } from '../../../hooks/useSubmissions';
 
-export default function ReviewQueue() {
-  const { submissions, loading, error, approve, reject, requestChanges } = useSubmissions();
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useSubmissions } from "../../../hooks/useSubmissions";
+
+function ReviewQueue() {
+  const {
+    submissions,
+    loading,
+    error,
+    approve,
+    reject,
+    requestChanges,
+  } = useSubmissions();
+
   const [busyId, setBusyId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState<Record<string, string>>({});
 
-  async function handleApprove(id: string) {
-    setBusyId(id);
-    await approve(id, noteDraft[id]);
-    setBusyId(null);
-  }
+  const updateNote = (id: string, value: string) => {
+    setNoteDraft((previous) => ({
+      ...previous,
+      [id]: value,
+    }));
+  };
 
-  async function handleReject(id: string) {
-    const notes = noteDraft[id];
+  const handleApprove = async (id: string) => {
+    try {
+      setBusyId(id);
+      await approve(id, noteDraft[id]?.trim() || undefined);
+    } catch (err) {
+      console.error("Failed to approve submission:", err);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleReject = async (id: string) => {
+    const notes = noteDraft[id]?.trim();
+
     if (!notes) {
-      alert('Review notes are required to reject a submission.');
+      alert("Review notes are required to reject a submission.");
       return;
     }
-    setBusyId(id);
-    await reject(id, notes);
-    setBusyId(null);
-  }
 
-  async function handleRequestChanges(id: string) {
-    const notes = noteDraft[id];
+    try {
+      setBusyId(id);
+      await reject(id, notes);
+    } catch (err) {
+      console.error("Failed to reject submission:", err);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleRequestChanges = async (id: string) => {
+    const notes = noteDraft[id]?.trim();
+
     if (!notes) {
-      alert('Review notes are required when requesting changes.');
+      alert("Review notes are required when requesting changes.");
       return;
     }
-    setBusyId(id);
-    await requestChanges(id, notes);
-    setBusyId(null);
+
+    try {
+      setBusyId(id);
+      await requestChanges(id, notes);
+    } catch (err) {
+      console.error("Failed to request changes:", err);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[300px] items-center justify-center">
+        <p className="text-sm text-gray-500">
+          Loading review queue...
+        </p>
+      </div>
+    );
   }
 
-  if (loading) return <div className="text-gray-500">Loading queue…</div>;
-  if (error) return <div className="text-red-600">Failed to load queue: {error}</div>;
+  if (error) {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+        <h2 className="font-semibold text-red-800">
+          Unable to load review queue
+        </h2>
+
+        <p className="mt-2 text-sm text-red-700">
+          {error}
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Review Queue</h1>
+    <section className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold text-gray-900">
+          Review Queue
+        </h1>
 
-      {submissions.length === 0 && (
-        <p className="text-gray-500">Nothing waiting on review right now.</p>
-      )}
+        <p className="mt-1 text-sm text-gray-500">
+          Review and process submissions awaiting review.
+        </p>
+      </div>
 
-      {submissions.map((s) => (
-        <div key={s.id} className="rounded border border-gray-200 p-4 space-y-3">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="font-medium">{s.summary}</p>
-              <p className="text-sm text-gray-500">
-                {s.entity_type.replace('_', ' ')} · submitted by {s.submitted_by_name}
-                {s.submitted_by_organisation ? ` (${s.submitted_by_organisation})` : ''} ·{' '}
-                {new Date(s.submitted_at).toLocaleDateString()}
-              </p>
-              <span className="inline-block mt-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
-                {s.status.replace('_', ' ')}
-              </span>
-            </div>
-            <Link
-              to={`/staff/review/queue/${s.id}`}
-              className="text-sm text-blue-600 hover:underline"
-            >
-              View details
-            </Link>
-          </div>
+      {submissions.length === 0 ? (
+        <div className="rounded-xl border border-gray-200 bg-white p-10 text-center shadow-sm">
+          <h2 className="text-lg font-medium text-gray-900">
+            Review queue is empty
+          </h2>
 
-          <textarea
-            placeholder="Review notes (required for reject / request changes)"
-            value={noteDraft[s.id] ?? ''}
-            onChange={(e) => setNoteDraft((prev) => ({ ...prev, [s.id]: e.target.value }))}
-            className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
-            rows={2}
-          />
-
-          <div className="flex gap-2">
-            <button
-              disabled={busyId === s.id}
-              onClick={() => handleApprove(s.id)}
-              className="rounded bg-green-600 text-white px-3 py-1.5 text-sm disabled:opacity-50"
-            >
-              Approve
-            </button>
-            <button
-              disabled={busyId === s.id}
-              onClick={() => handleRequestChanges(s.id)}
-              className="rounded bg-amber-500 text-white px-3 py-1.5 text-sm disabled:opacity-50"
-            >
-              Request changes
-            </button>
-            <button
-              disabled={busyId === s.id}
-              onClick={() => handleReject(s.id)}
-              className="rounded bg-red-600 text-white px-3 py-1.5 text-sm disabled:opacity-50"
-            >
-              Reject
-            </button>
-          </div>
+          <p className="mt-2 text-sm text-gray-500">
+            There are currently no submissions waiting for review.
+          </p>
         </div>
-      ))}
-    </div>
+      ) : (
+        <div className="space-y-4">
+          {submissions.map((submission) => {
+            const isBusy = busyId === submission.id;
+
+            return (
+              <article
+                key={submission.id}
+                className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+              >
+                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                  <div className="min-w-0">
+                    <h2 className="text-base font-semibold text-gray-900">
+                      {submission.summary}
+                    </h2>
+
+                    <div className="mt-2 space-y-1 text-sm text-gray-500">
+                      <p className="capitalize">
+                        {submission.entity_type.replace(/_/g, " ")}
+                      </p>
+
+                      <p>
+                        Submitted by{" "}
+                        <span className="font-medium text-gray-700">
+                          {submission.submitted_by_name}
+                        </span>
+
+                        {submission.submitted_by_organisation && (
+                          <>
+                            {" "}
+                            ({submission.submitted_by_organisation})
+                          </>
+                        )}
+                      </p>
+
+                      <p>
+                        Submitted on{" "}
+                        {new Date(
+                          submission.submitted_at
+                        ).toLocaleDateString()}
+                      </p>
+                    </div>
+
+                    <span className="mt-3 inline-flex rounded-full bg-gray-100 px-3 py-1 text-xs font-medium capitalize text-gray-600">
+                      {submission.status.replace(/_/g, " ")}
+                    </span>
+                  </div>
+
+                  <Link
+                    to={`/staff/review/queue/${submission.id}`}
+                    className="shrink-0 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline"
+                  >
+                    View details →
+                  </Link>
+                </div>
+
+                <div className="mt-5">
+                  <label
+                    htmlFor={`review-notes-${submission.id}`}
+                    className="mb-2 block text-sm font-medium text-gray-700"
+                  >
+                    Review notes
+                  </label>
+
+                  <textarea
+                    id={`review-notes-${submission.id}`}
+                    rows={3}
+                    value={noteDraft[submission.id] ?? ""}
+                    onChange={(event) =>
+                      updateNote(
+                        submission.id,
+                        event.target.value
+                      )
+                    }
+                    placeholder="Add review notes. Required for rejection or requesting changes."
+                    disabled={isBusy}
+                    className="w-full resize-y rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:bg-gray-100"
+                  />
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={isBusy}
+                    onClick={() =>
+                      handleApprove(submission.id)
+                    }
+                    className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isBusy ? "Processing..." : "Approve"}
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isBusy}
+                    onClick={() =>
+                      handleRequestChanges(submission.id)
+                    }
+                    className="rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Request changes
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isBusy}
+                    onClick={() =>
+                      handleReject(submission.id)
+                    }
+                    className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Reject
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }
+
+export default ReviewQueue;
