@@ -48,15 +48,18 @@ export function AuthProvider({
   const user = session?.user ?? null;
 
   async function loadProfile() {
-    try {
-      const staffProfile = await getCurrentStaffProfile();
+  try {
+    const staffProfile = await getCurrentStaffProfile();
 
-      setProfile(staffProfile as Profile | null);
-    } catch (error) {
-      console.error("Failed to load staff profile:", error);
-      setProfile(null);
-    }
+    console.log("AUTH USER:", user);
+    console.log("STAFF PROFILE:", staffProfile);
+
+    setProfile(staffProfile as Profile | null);
+  } catch (error) {
+    console.error("Failed to load staff profile:", error);
+    setProfile(null);
   }
+}
 
   useEffect(() => {
     let mounted = true;

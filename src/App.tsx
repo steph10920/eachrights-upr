@@ -1,14 +1,5 @@
 
-import {
-  BrowserRouter,
-  Navigate,
-  Route,
-  Routes,
-} from "react-router-dom";
-
-// ============================================================
-// PUBLIC PAGES
-// ============================================================
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Overview from "./pages/public/Overview";
 import Recommendations from "./pages/public/Recommendations";
@@ -18,64 +9,58 @@ import Themes from "./pages/public/Themes";
 import Institutions from "./pages/public/Institutions";
 import Evidence from "./pages/public/Evidence";
 
-// ============================================================
-// STAFF PAGES
-// ============================================================
-
 import Login from "./pages/staff/Login";
 import Dashboard from "./pages/staff/Dashboard";
+import Submissions from "./pages/staff/Submissions";
+import AddRecommendation from "./pages/staff/AddRecommendation";
+import AddImplementationUpdate from "./pages/staff/AddImplementation";
+import AddAction from "./pages/staff/AddAction";
+import AddEvidence from "./pages/staff/AddEvidence";
+
+import ReviewerDashboard from "./pages/staff/reviewer/ReviewerDashboard";
 import ReviewQueue from "./pages/staff/reviewer/ReviewQueue";
 
-// ============================================================
-// PLACEHOLDER
-// ============================================================
-
 import PagePlaceholder from "./components/ui/PagePlaceholder";
-
-// ============================================================
-// STAFF AUTHENTICATION
-// ============================================================
-
 import ProtectedRoute from "./components/staff/ProtectedRoute";
 import { RoleGuard } from "./components/staff/RoleGuard";
 import { StaffLayout } from "./components/staff/StaffLayout";
-import { AuthProvider } from "./hooks/useAuth";
 
-// ============================================================
-// PENDING APPROVAL
-// ============================================================
+import { AuthProvider } from "./hooks/useAuth";
 
 function PendingApproval() {
   return (
-    <div className="flex min-h-screen items-center justify-center p-6 text-center">
-      <div className="max-w-md">
-        <h1 className="mb-2 text-lg font-semibold text-gray-900">
-          Account awaiting approval
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+        <h1 className="text-2xl font-bold text-slate-900">
+          Account Pending Approval
         </h1>
 
-        <p className="text-sm text-gray-500">
-          Your EACHRights staff account has been created, but an
-          Administrator still needs to activate it before you can
-          continue.
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          Your account has been created, but it is waiting for administrator
+          approval. You will be able to access the staff dashboard once your
+          account has been activated.
         </p>
+
+        <a
+          href="/login"
+          className="mt-6 inline-flex items-center justify-center rounded-lg bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800"
+        >
+          Return to Login
+        </a>
       </div>
     </div>
   );
 }
 
-// ============================================================
-// APP
-// ============================================================
-
-function App() {
+export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
+    <AuthProvider>
+      <BrowserRouter>
         <Routes>
 
-          {/* ==================================================
-              PUBLIC DASHBOARD
-          ================================================== */}
+          {/* =========================================================
+              PUBLIC ROUTES
+          ========================================================= */}
 
           <Route path="/" element={<Overview />} />
 
@@ -109,87 +94,74 @@ function App() {
             element={<Evidence />}
           />
 
-          {/* ==================================================
-              STAFF LOGIN
-          ================================================== */}
+          {/* =========================================================
+              AUTHENTICATION
+          ========================================================= */}
 
-          <Route
-            path="/login"
-            element={<Login />}
-          />
+          <Route path="/login" element={<Login />} />
 
           <Route
             path="/pending-approval"
             element={<PendingApproval />}
           />
 
-          {/* ==================================================
-              PROTECTED STAFF PORTAL
-          ================================================== */}
+          {/* =========================================================
+              PROTECTED STAFF ROUTES
+          ========================================================= */}
 
           <Route element={<ProtectedRoute />}>
-            <Route
-              path="/staff"
-              element={<StaffLayout />}
-            >
 
-              {/* ----------------------------------------------
-                  STAFF DASHBOARD
-              ---------------------------------------------- */}
+            {/* =====================================================
+                STAFF LAYOUT
+            ===================================================== */}
 
-              <Route
-                index
-                element={<Dashboard />}
-              />
+            <Route path="/staff" element={<StaffLayout />}>
 
-              {/* ----------------------------------------------
-                  CONTRIBUTOR ROUTES
-              ---------------------------------------------- */}
+              {/* Staff Dashboard */}
+              <Route index element={<Dashboard />} />
 
+              {/* Submissions */}
               <Route
                 path="submissions"
-                element={
-                  <PagePlaceholder title="My Submissions" />
-                }
+                element={<Submissions />}
               />
+
+              {/* =================================================
+                  CONTRIBUTOR FORMS
+              ================================================= */}
 
               <Route
                 path="add-recommendation"
-                element={
-                  <PagePlaceholder title="Add Recommendation" />
-                }
+                element={<AddRecommendation />}
               />
 
               <Route
                 path="add-implementation-update"
-                element={
-                  <PagePlaceholder title="Add Implementation Update" />
-                }
+                element={<AddImplementationUpdate />}
               />
 
               <Route
                 path="add-action"
-                element={
-                  <PagePlaceholder title="Add Action" />
-                }
+                element={<AddAction />}
               />
 
               <Route
                 path="add-evidence"
-                element={
-                  <PagePlaceholder title="Add Evidence" />
-                }
+                element={<AddEvidence />}
               />
 
-              {/* ----------------------------------------------
-                  REVIEWER ROUTES
-              ---------------------------------------------- */}
+              {/* =================================================
+                  REVIEWER AREA
+              ================================================= */}
 
               <Route
-                element={
-                  <RoleGuard minRole="reviewer" />
-                }
+                element={<RoleGuard minRole="reviewer" />}
               >
+                <Route
+                  path="reviewer"
+                  element={<ReviewerDashboard />}
+                />
+
                 <Route
                   path="review/queue"
                   element={<ReviewQueue />}
@@ -210,40 +182,38 @@ function App() {
                 />
               </Route>
 
-              {/* ----------------------------------------------
-                  ADMINISTRATOR ROUTES
-              ---------------------------------------------- */}
+              {/* =================================================
+                  ADMINISTRATOR AREA
+              ================================================= */}
 
               <Route
-                element={
-                  <RoleGuard minRole="administrator" />
-                }
+                element={<RoleGuard minRole="administrator" />}
               >
                 <Route
                   path="admin/users"
                   element={
-                    <PagePlaceholder title="Users" />
+                    <PagePlaceholder title="User Management" />
                   }
                 />
 
                 <Route
                   path="admin/institutions"
                   element={
-                    <PagePlaceholder title="Institutions" />
+                    <PagePlaceholder title="Institution Management" />
                   }
                 />
 
                 <Route
                   path="admin/themes"
                   element={
-                    <PagePlaceholder title="Themes" />
+                    <PagePlaceholder title="Theme Management" />
                   }
                 />
 
                 <Route
                   path="admin/upr-cycles"
                   element={
-                    <PagePlaceholder title="UPR Cycles" />
+                    <PagePlaceholder title="UPR Cycle Management" />
                   }
                 />
               </Route>
@@ -251,9 +221,9 @@ function App() {
             </Route>
           </Route>
 
-          {/* ==================================================
+          {/* =========================================================
               FALLBACK
-          ================================================== */}
+          ========================================================= */}
 
           <Route
             path="*"
@@ -261,9 +231,7 @@ function App() {
           />
 
         </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
-
-export default App;

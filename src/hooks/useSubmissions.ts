@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 export interface Submission {
+  submitted_by_email: string | null;
   id: string;
   summary: string;
   entity_type: string;

@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff, LockKeyhole, Mail, ArrowLeft } from "lucide-react";
 import { signIn } from "../../lib/auth";
 
 export default function Login() {
@@ -83,6 +84,17 @@ export default function Login() {
         <div className="flex w-full items-center justify-center px-6 py-12 lg:w-1/2">
 
           <div className="w-full max-w-md">
+
+            {/* Back to public dashboard */}
+            <div className="mb-8">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition hover:text-emerald-700"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Public Dashboard
+              </Link>
+            </div>
 
             {/* Mobile branding */}
             <div className="mb-10 lg:hidden">
