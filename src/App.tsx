@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Overview from "./pages/public/Overview";
@@ -20,6 +19,7 @@ import AddEvidence from "./pages/staff/AddEvidence";
 import ReviewerDashboard from "./pages/staff/reviewer/ReviewerDashboard";
 import ReviewQueue from "./pages/staff/reviewer/ReviewQueue";
 
+import PublicLayout from "./components/layout/PublicLayout";
 import PagePlaceholder from "./components/ui/PagePlaceholder";
 import ProtectedRoute from "./components/staff/ProtectedRoute";
 import { RoleGuard } from "./components/staff/RoleGuard";
@@ -57,46 +57,27 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-
-          {/* =========================================================
-              PUBLIC ROUTES
-          ========================================================= */}
-
-          <Route path="/" element={<Overview />} />
-
-          <Route
-            path="/recommendations"
-            element={<Recommendations />}
-          />
-
-          <Route
-            path="/recommendations/:id"
-            element={<RecommendationDetail />}
-          />
-
-          <Route
-            path="/implementation"
-            element={<Implementation />}
-          />
-
-          <Route
-            path="/themes"
-            element={<Themes />}
-          />
-
-          <Route
-            path="/institutions"
-            element={<Institutions />}
-          />
-
-          <Route
-            path="/evidence"
-            element={<Evidence />}
-          />
-
-          {/* =========================================================
-              AUTHENTICATION
-          ========================================================= */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<Overview />} />
+            <Route
+              path="/recommendations"
+              element={<Recommendations />}
+            />
+            <Route
+              path="/recommendations/:id"
+              element={<RecommendationDetail />}
+            />
+            <Route
+              path="/implementation"
+              element={<Implementation />}
+            />
+            <Route path="/themes" element={<Themes />} />
+            <Route
+              path="/institutions"
+              element={<Institutions />}
+            />
+            <Route path="/evidence" element={<Evidence />} />
+          </Route>
 
           <Route path="/login" element={<Login />} />
 
@@ -105,30 +86,14 @@ export default function App() {
             element={<PendingApproval />}
           />
 
-          {/* =========================================================
-              PROTECTED STAFF ROUTES
-          ========================================================= */}
-
           <Route element={<ProtectedRoute />}>
-
-            {/* =====================================================
-                STAFF LAYOUT
-            ===================================================== */}
-
             <Route path="/staff" element={<StaffLayout />}>
-
-              {/* Staff Dashboard */}
               <Route index element={<Dashboard />} />
 
-              {/* Submissions */}
               <Route
                 path="submissions"
                 element={<Submissions />}
               />
-
-              {/* =================================================
-                  CONTRIBUTOR FORMS
-              ================================================= */}
 
               <Route
                 path="add-recommendation"
@@ -150,13 +115,7 @@ export default function App() {
                 element={<AddEvidence />}
               />
 
-              {/* =================================================
-                  REVIEWER AREA
-              ================================================= */}
-
-              <Route
-                element={<RoleGuard minRole="reviewer" />}
-              >
+              <Route element={<RoleGuard minRole="reviewer" />}>
                 <Route
                   path="reviewer"
                   element={<ReviewerDashboard />}
@@ -182,13 +141,7 @@ export default function App() {
                 />
               </Route>
 
-              {/* =================================================
-                  ADMINISTRATOR AREA
-              ================================================= */}
-
-              <Route
-                element={<RoleGuard minRole="administrator" />}
-              >
+              <Route element={<RoleGuard minRole="administrator" />}>
                 <Route
                   path="admin/users"
                   element={
@@ -217,19 +170,13 @@ export default function App() {
                   }
                 />
               </Route>
-
             </Route>
           </Route>
-
-          {/* =========================================================
-              FALLBACK
-          ========================================================= */}
 
           <Route
             path="*"
             element={<Navigate to="/" replace />}
           />
-
         </Routes>
       </BrowserRouter>
     </AuthProvider>
